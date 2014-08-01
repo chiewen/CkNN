@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd 
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+	<context:annotation-config />
+
+	<bean
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location">
+			<value>classpath:experiments.properties</value>
+		</property>
+	</bean>
+
+	<bean id="globalSetting" name="GlobalSetting"
+		class="cn.edu.neu.chiewen.cknn.settings.GlobalSetting">
+		<property name="width" value="2000000" />
+		<property name="height" value="2000000" />
+		<property name="pointNumber" value="${point_number}" />
+		<property name="pointRadius" value="2" />
+		<property name="dir_write" value="${fileroot_write}" />
+		<property name="dir_traj" value="${fileroot_traj}" />
+	</bean>
+	<bean id="performSettings" name="PerformSettings"
+		class="cn.edu.neu.chiewen.cknn.settings.PerformSettings">
+		<property name="trajectories">
+			<bean class="cn.edu.neu.chiewen.cknn.trajectory.Trajectories">
+				<property name="file" value="${fileroot_traj}trajectories.trj"></property>
+			</bean>
+		</property>
+		<property name="servers">
+			<list>
+				<bean class="cn.edu.neu.chiewen.cknn.server.ServerDisk">
+					<property name="dataFile" value="${fileroot_demo}data.vtd" />
+					<property name="indexFile" value="${fileroot_demo}index.vti" />
+				</bean>
+				<!-- bean class="cn.edu.neu.chiewen.cknn.server.ServerDisk">
+					<property name="dataFile" value="${fileroot_Street}data.vtd" />
+					<property name="indexFile" value="${fileroot_Street}index.vti" />
+				</bean-->
+			</list>
+		</property>
+		<property name="clients">
+			<list>
+				<!-- <bean class="cn.edu.neu.chiewen.cknn.algorithms.cknn.CknnNeighborSwapAllSplit"> 
+					<property name="k" value="5" /> </bean> <bean class="cn.edu.neu.chiewen.cknn.algorithms.vsdiagram.VsClient"> 
+					<property name="k" value="5" /> <property name="x" value="9" /> </bean> -->
+
+				<!-- <bean class="cn.edu.neu.chiewen.cknn.algorithms.vsdiagram.VsClient"> 
+					<property name="k" value="5" /> <property name="x" value="9" /> </bean> <bean 
+					class="cn.edu.neu.chiewen.cknn.algorithms.vsdiagram.VsClient"> <property 
+					name="k" value="5" /> <property name="x" value="9" /> </bean>
+					<property name="k" value="40" />
+					<property name="x" value="9" />
+				</bean-->	
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.vsdiagram.VsClient">
+					<property name="k" value="5" />
+					<property name="x" value="9" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.vsdiagram.VsClient">
+					<property name="k" value="5" />
+					<property name="x" value="9" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.vsdiagram.VsClient">
+					<property name="k" value="5" />
+					<property name="x" value="9" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.vsdiagram.VsClient">
+					<property name="k" value="5" />
+					<property name="x" value="9" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.vsdiagram.VsClient">
+					<property name="k" value="5" />
+					<property name="x" value="9" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.vsdiagram.VsClient">
+					<property name="k" value="10" />
+					<property name="x" value="9" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.vsdiagram.VsClient">
+					<property name="k" value="15" />
+					<property name="x" value="9" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.vsdiagram.VsClient">
+					<property name="k" value="20" />
+					<property name="x" value="9" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.vsdiagram.VsClient">
+					<property name="k" value="25" />
+					<property name="x" value="9" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.vsdiagram.VsClient">
+					<property name="k" value="30" />
+					<property name="x" value="9" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.vsdiagram.VsClient">
+					<property name="k" value="35" />
+					<property name="x" value="9" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.vsdiagram.VsClient">
+					<property name="k" value="40" />
+					<property name="x" value="9" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.vsdiagram.VsClient">
+					<property name="k" value="45" />
+					<property name="x" value="9" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.vsdiagram.VsClient">
+					<property name="k" value="50" />
+					<property name="x" value="9" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.cknn.CkNNClient">
+					<property name="k" value="5" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.cknn.CkNNClient">
+					<property name="k" value="10" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.cknn.CkNNClient">
+					<property name="k" value="15" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.cknn.CkNNClient">
+					<property name="k" value="20" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.cknn.CkNNClient">
+					<property name="k" value="25" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.cknn.CkNNClient">
+					<property name="k" value="30" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.cknn.CkNNClient">
+					<property name="k" value="35" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.cknn.CkNNClient">
+					<property name="k" value="40" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.cknn.CkNNClient">
+					<property name="k" value="45" />
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.algorithms.cknn.CkNNClient">
+					<property name="k" value="50" />
+				</bean>
+			</list>
+		</property>
+	</bean>
+	<bean id="trajectorySettings" name="TrajectorySettings"
+		class="cn.edu.neu.chiewen.cknn.settings.TrajectorySettings">
+		<property name="factories">
+			<list>
+				<bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory">
+					<property name="segments" value="300" />
+					<property name="builder">
+						<bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderFile">
+							<property name="filePath"
+								value="/Users/chiewen/Research/data/trajectory/schoolbuses/Buses.txt" />
+						</bean>
+					</property>
+				</bean>
+				<bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory">
+					<property name="segments" value="300" />
+					<property name="builder">
+						<bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderFile">
+							<property name="filePath"
+								value="/Users/chiewen/Research/data/trajectory/trucks/Trucks.txt" />
+						</bean>
+					</property>
+				</bean>
+				<!-- bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="10" /> <property name="angle" value="0" /> </bean> </property> 
+					</bean> <bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="10" /> <property name="angle" value="0" /> </bean> </property> 
+					</bean> <bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="20" /> <property name="angle" value="0" /> </bean> </property> 
+					</bean> <bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="40" /> <property name="angle" value="0" /> </bean> </property> 
+					</bean> <bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="80" /> <property name="angle" value="0" /> </bean> </property> 
+					</bean> <bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="160" /> <property name="angle" value="0" /> </bean> </property> 
+					</bean -->
+				<!-- bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="320" /> <property name="angle" value="0" /> </bean> </property> 
+					</bean -->
+				<!-- bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="640" /> <property name="angle" value="0" /> </bean> </property> 
+					</bean> <bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="1280" /> <property name="angle" value="0" /> </bean> </property> 
+					</bean> <bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="2560" /> <property name="angle" value="0" /> </bean> </property> 
+					</bean> <bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="10" /> <property name="angle" value="2" /> </bean> </property> 
+					</bean> <bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="10" /> <property name="angle" value="2" /> </bean> </property> 
+					</bean> <bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="10" /> <property name="angle" value="2" /> </bean> </property> 
+					</bean> <bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="20" /> <property name="angle" value="2" /> </bean> </property> 
+					</bean> <bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="40" /> <property name="angle" value="2" /> </bean> </property> 
+					</bean> <bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="80" /> <property name="angle" value="2" /> </bean> </property> 
+					</bean> <bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="160" /> <property name="angle" value="2" /> </bean> </property> 
+					</bean -->
+				<!-- bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="320" /> <property name="angle" value="1" /> </bean> </property> 
+					</bean -->
+				<!-- bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="640" /> <property name="angle" value="2" /> </bean> </property> 
+					</bean> <bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="1280" /> <property name="angle" value="2" /> </bean> </property> 
+					</bean> <bean class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryFactory"> 
+					<property name="segments" value="300" /> <property name="builder"> <bean 
+					class="cn.edu.neu.chiewen.cknn.trajectory.TrajectoryBuilderRandom"> <property 
+					name="step" value="2560" /> <property name="angle" value="2" /> </bean> </property> 
+					</bean -->
+			</list>
+		</property>
+	</bean>
+	<bean id="illustrateSettings" name="IllustrateSettings"
+		class="cn.edu.neu.chiewen.cknn.settings.IllustrateSettings">
+		<property name="show" value="true" />
+		<property name="showPoints" value="true" />
+		<property name="showVoronoi" value="true" />
+		<property name="showTrajectory" value="false" />
+		<property name="showRTreeMbr" value="false" />
+		<property name="showPointNames" value="false" />
+	</bean>
+
+	<bean id="serverMemory" name="ServerMemory"
+		class="cn.edu.neu.chiewen.cknn.server.ServerMemory">
+		<property name="file" value="${fileroot_demo}tree.vtm" />
+	</bean>
+</beans>
