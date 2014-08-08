@@ -99,7 +99,7 @@ class VsClient extends Client {
   }
 
   def delete(position: (Double, Double), deleted: Site)(implicit server: Server) {
-    def isNearer(a: Site, b: Site) = pointsDistanceNS(a, position) < pointsDistanceNS(b, position)
+    def isNearer(a: Site, b: Site): Boolean = pointsDistanceNS(a, position) < pointsDistanceNS(b, position)
     implicit val ordering = Ordering.fromLessThan(isNearer)
 
     if (disToZ < pointsDistance(deleted, qb)) return

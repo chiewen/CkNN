@@ -16,12 +16,7 @@ import scala.collection.mutable
  *
  */
 class VTree(points: List[NeighboredSiteMemory]) extends RsTree with Serializable {
-  //var i = 0
-  points foreach { p =>
-    insert(p)
-    //if (i % 500 == 0) println("inserted " + i)
-    //i += 1
-  }
+  points foreach insert
 
   /**
    * Implementing the BF-kNN algorithm introduced in the V*-Diagram paper
@@ -117,9 +112,7 @@ object VTree {
       }
 
       val kn = map.keys.size
-      for (
-        k <- map.keys
-      ) {
+      for (k <- map.keys) {
         for (
           s <- map(k);
           n <- map(k) if n != s

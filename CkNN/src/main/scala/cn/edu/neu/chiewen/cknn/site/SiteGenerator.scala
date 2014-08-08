@@ -11,11 +11,12 @@ object SiteGenerator {
   //val file = "/Volumes/ChieDisk2T/Data/geocoderData/Canada.csv"
   val file = "/Users/chiewen/Downloads/CanData.csv"
 
-  def getSites = {
+  def getSites (num: Int = globalSetting.pointNumber, width: Int = globalSetting.width,
+                 height: Int = globalSetting.height) = {
     val lb = ListBuffer[NeighboredSiteMemory]()
 
-    for (i <- 1 to globalSetting.pointNumber)
-      lb.append(new NeighboredSiteMemory(i, (nextDouble * globalSetting.width, nextDouble * globalSetting.height)))
+    for (i <- 1 to num)
+      lb.append(new NeighboredSiteMemory(i, (nextDouble * width, nextDouble * height)))
 
     lb.toList
   }
