@@ -74,8 +74,12 @@ class VoronoiPanel extends Panel {
         VoronoiPanel.POINT_WIDTH + 2 * e, VoronoiPanel.POINT_WIDTH + 2 * e)
     }
 
+    // order-k Voronoi cells
     if (DemoData.clip != null && DemoData.clip.size > 0) {
-      g.setColor(Color.cyan)
+      if (needRefresh)
+        g.setColor(new Color(255, 0, 0, 155))
+      else
+        g.setColor(Color.cyan)
       var polygons: List[Polygon] = Nil
       for (c <- DemoData.clip) {
         val p = new Polygon()
