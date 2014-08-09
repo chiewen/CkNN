@@ -18,14 +18,35 @@ class VoronoiPanel extends Panel {
 
   var pVor = new geom.GeneralPath
   var pCompare = new geom.GeneralPath
+  var isCalculating = false
+  var needRefresh = false
 
   focusable = true
-  listenTo(mouse.clicks, mouse.moves, keys)
+  listenTo(mouse.clicks, mouse.moves, keys, DemoData)
 
   reactions += {
     case e: MousePressed =>
       DemoData.query = e.point
       requestFocusInWindow()
+      repaint
+    case e: MouseDragged =>
+      DemoData.query = e.point
+      repaint
+    case KeyTyped(_, 'r', _, _) =>
+      DemoData.refresh
+      repaint
+    case NotNeedRefreshEvent =>
+      needRefresh = false
+      repaint
+    case NeedRefreshEvent =>
+      needRefresh = true
+      repaint
+    case BeginCalculatingEvent =>
+      needRefresh = false
+      isCalculating = true
+      repaint
+    case DataFinishedEvent =>
+      isCalculating = false
       repaint
     case _: FocusLost => repaint()
   }
@@ -44,6 +65,8 @@ class VoronoiPanel extends Panel {
 
   override def paintComponent(g: Graphics2D) = {
     super.paintComponent(g)
+    pCompare.reset
+    val all = new Rectangle(0, 0, VoronoiPanel.WIDTH * 2, VoronoiPanel.HEIGHT * 2)
 
     def fillCircle(i: NeighboredSiteMemory, e: Int = 0) {
       g.fillOval(i.position._1.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
@@ -51,7 +74,7 @@ class VoronoiPanel extends Panel {
         VoronoiPanel.POINT_WIDTH + 2 * e, VoronoiPanel.POINT_WIDTH + 2 * e)
     }
 
-    if (DemoData.clip != null) {
+    if (DemoData.clip != null && DemoData.clip.size > 0) {
       g.setColor(Color.cyan)
       var polygons: List[Polygon] = Nil
       for (c <- DemoData.clip) {
@@ -60,7 +83,6 @@ class VoronoiPanel extends Panel {
           p.addPoint(i._1.toInt, i._2.toInt)
         polygons ::= p
       }
-      val all = new Rectangle(0, 0, VoronoiPanel.WIDTH * 2, VoronoiPanel.HEIGHT * 2)
       g.setClip(all)
       polygons foreach (p => g.clip(p))
       g.fillRect(0, 0, VoronoiPanel.WIDTH * 2, VoronoiPanel.HEIGHT * 2)
@@ -79,24 +101,25 @@ class VoronoiPanel extends Panel {
       //the compared pair
       val far = DemoData.max(DemoData.knn)
       val near = DemoData.min(DemoData.ins)
-      g.setColor(Color.red)
+      g.setColor(Color.green)
       g.drawOval((far._1 - 8).toInt, (far._2 - 8).toInt, 16, 16)
+      g.setColor(Color.red)
       g.drawOval((near._1 - 8).toInt, (near._2 - 8).toInt, 16, 16)
 
       val longEdge = Util.pointsDistance(far, near)
       val middle = ((far._1 + near._1) / 2, (far._2 + near._2) / 2)
-      pCompare.reset
-      pCompare.moveTo(middle._1 + 10000 * (far._2 - near._2) / longEdge, middle._2 + 10000 * (near._1 - far._1) / longEdge)
-      pCompare.lineTo(middle._1 - 10000 * (far._2 - near._2) / longEdge, middle._2 - 10000 * (near._1 - far._1) / longEdge)
+      val p1 = (middle._1 + 10000 * (far._2 - near._2) / longEdge, middle._2 + 10000 * (near._1 - far._1) / longEdge)
+      val p2 = (middle._1 - 10000 * (far._2 - near._2) / longEdge, middle._2 - 10000 * (near._1 - far._1) / longEdge)
+      pCompare.moveTo(p1._1, p1._2)
+      pCompare.lineTo(p2._1, p2._2)
+
+      g.setColor(Color.red)
+      val disR = Util.pointsDistance((DemoData.query.x, DemoData.query.y),
+        DemoData.min(DemoData.ins).position)
+      g.drawOval((DemoData.query.x - disR).toInt, (DemoData.query.y - disR).toInt, 2 * disR.toInt, 2 * disR.toInt)
 
       //rnn
-      if ((DemoData.rho * DemoData.k).toInt > DemoData.k) {
-        g.setColor(Color.red)
-        for (i <- DemoData.rnn) fillCircle(i)
-        val disR = Util.pointsDistance((DemoData.query.x, DemoData.query.y),
-          DemoData.max(DemoData.rnn).position)
-        g.drawOval((DemoData.query.x - disR).toInt, (DemoData.query.y - disR).toInt, 2 * disR.toInt, 2 * disR.toInt)
-      }
+      if ((DemoData.rho * DemoData.k).toInt > DemoData.k) for (i <- DemoData.rnn) fillCircle(i)
 
       //knn
       g.setColor(Color.green)
@@ -118,11 +141,14 @@ class VoronoiPanel extends Panel {
         VoronoiPanel.POINT_WIDTH + 2 * e, VoronoiPanel.POINT_WIDTH + 2 * e)
     }
 
-    //the trajectory
-    g.setColor(Color.black)
-
     //the division line
     g.draw(pCompare)
+
+    g.setColor(Color.black)
+    if (isCalculating)
+      g.drawString("Calculating Order-" + DemoData.k + " Voronoi cell...", 10, size.height - 10)
+    if (needRefresh)
+      g.drawString("The kNN set is invalid. Press 'r' to refresh.", 10, size.height - 10)
   }
 }
 

@@ -1,17 +1,31 @@
 package cn.edu.neu.chiewen.cknn.demo
 
 import Plotter.MatlabPlotter
+import akka.actor.{ActorSystem, Props}
+import akka.dispatch.ExecutionContexts._
+import akka.pattern.ask
+import akka.util.Timeout
 import cn.edu.neu.chiewen.cknn.algorithms.Util._
 import cn.edu.neu.chiewen.cknn.site.{NeighboredSiteMemory, SiteGenerator}
 import cn.edu.neu.chiewen.cknn.vtree.VTree
 import com.mathworks.toolbox.javabuilder.{MWArray, MWClassID, MWComplexity, MWNumericArray}
 
-import scala.swing.Point
+import scala.concurrent.duration._
+import scala.swing.event.Event
+import scala.swing.{Point, Publisher}
+
+case object DataFinishedEvent extends Event
+
+case object BeginCalculatingEvent extends Event
+
+case object NeedRefreshEvent extends Event
+
+case object NotNeedRefreshEvent extends Event
 
 /**
  * Created by chiewen on 8/8/14.
  */
-object DemoData {
+object DemoData extends Publisher {
   var points: List[NeighboredSiteMemory] = null
   var voronoi: List[Array[(Double, Double)]] = null
   var tree: VTree = null
@@ -29,7 +43,17 @@ object DemoData {
 
   def query_=(p: Point) {
     _query = p
-    refresh
+
+    if (rnn != null) {
+      def isNearer(a: NeighboredSiteMemory, b: NeighboredSiteMemory): Boolean =
+        pointsDistanceNS(a, (_query.x, _query.y)) < pointsDistanceNS(b, (_query.x, _query.y))
+      implicit val ordering = Ordering.fromLessThan(isNearer)
+      // knn remain the same
+      val far = max(knn)
+      if (ins.exists(p => isNearer(p, far))) publish(NeedRefreshEvent)
+      else publish(NotNeedRefreshEvent)
+    }
+    else refresh
   }
 
   def refresh {
@@ -44,12 +68,24 @@ object DemoData {
     else recalculateKnn
 
     def recalculateKnn {
+      publish(BeginCalculatingEvent)
+
       rnn = tree.knn((k * rho).toInt, (_query.x, _query.y))._1
       // TODO confirm the function of the "distinct" operation
       ins = (rnn.flatMap(f => f.getNeighbors) ::: rnn).distinct.filterNot(f => knn.exists(e => e.id == f.id))
       val pointsExcluded = points.filterNot(p => knn.exists(e => e.id == p.id))
       clip = Nil
-      for (p <- knn) clip ::= singleVoronoi(pointsExcluded, p)
+
+      implicit val ec = global
+      val system = ActorSystem("default")
+      val actor = system.actorOf(Props(new OrderKVoronoiActor))
+      implicit val timeout = Timeout(25 seconds)
+      val future = actor ? StartCalcOrderK(knn, pointsExcluded)
+      future.map { result =>
+        clip = result.asInstanceOf[List[Array[(Double, Double)]]]
+        system.shutdown()
+        publish(DataFinishedEvent)
+      }
     }
   }
 
@@ -74,7 +110,7 @@ object DemoData {
   }
 
   def reset(num: Int, k: Int, rho: Double, width: Int, height: Int) {
-    points = SiteGenerator.getSites(num, width, height)
+    points = SiteGenerator.getSites(num, width, height - 25)
     voronoi = calcVoronoi(points, width, height)
     tree = VTree(points)
     this.k = k
@@ -124,8 +160,8 @@ object DemoData {
     result
   }
 
-  def singleVoronoi(ps: List[NeighboredSiteMemory], p: NeighboredSiteMemory) = {
-    val result = voronoi(p :: ps)
+  def singleVoronoi(ps: List[NeighboredSiteMemory]) = {
+    val result = voronoi(ps)
     result(1).asInstanceOf[MWArray].get(Array(9, 1)).asInstanceOf[Array[Array[Double]]](0)
       .map(d => (result(0).asInstanceOf[MWNumericArray].getDouble(Array(d.toInt, 1)),
       result(0).asInstanceOf[MWNumericArray].getDouble(Array(d.toInt, 2))

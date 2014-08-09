@@ -45,14 +45,13 @@ object Demo extends SimpleSwingApplication {
     val lblRho = newLabel("rho = ")
     val txtRho = newField(1)
     txtRho.text = "1.6"
-    val btnReset = new Button("Reset Objects")
+    val btnReset = new Button("Set Objects")
     val panel = new VoronoiPanel
 
     listenTo(btnReset)
     reactions += {
       case ButtonClicked(_) => resetDemoData
     }
-
 
     layout(lblN) = resetConstraint(cons, 0)
     layout(txtN) = resetConstraint(cons, 1)
@@ -70,6 +69,7 @@ object Demo extends SimpleSwingApplication {
     cons.gridx = 0
     cons.gridy = 1
     layout(panel) = cons
+
 
     def resetDemoData {
       DemoData.reset(txtN.text.toInt, txtK.text.toInt, txtRho.text.toDouble,
