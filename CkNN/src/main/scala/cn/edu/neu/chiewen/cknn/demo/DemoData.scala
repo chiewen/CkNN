@@ -1,6 +1,7 @@
 package cn.edu.neu.chiewen.cknn.demo
 
 import Plotter.MatlabPlotter
+import cn.edu.neu.chiewen.cknn.algorithms.Util._
 import cn.edu.neu.chiewen.cknn.site.{NeighboredSiteMemory, SiteGenerator}
 import cn.edu.neu.chiewen.cknn.vtree.VTree
 import com.mathworks.toolbox.javabuilder.{MWArray, MWClassID, MWComplexity, MWNumericArray}
@@ -28,12 +29,48 @@ object DemoData {
 
   def query_=(p: Point) {
     _query = p
-    rnn = tree.knn((k * rho).toInt, (_query.x, _query.y))._1
-    ins = knn.flatMap(f => f.getNeighbors).filterNot(f => knn.exists(e => e.id == f.id))
+    refresh
+  }
 
-    val pointsExcluded = points.filterNot(p => knn.exists(e => e.id == p.id))
-    clip = Nil
-    for (p <- knn) clip ::= singleVoronoi(pointsExcluded, p)
+  def refresh {
+    if (rnn != null) {
+      def isNearer(a: NeighboredSiteMemory, b: NeighboredSiteMemory): Boolean =
+        pointsDistanceNS(a, (_query.x, _query.y)) < pointsDistanceNS(b, (_query.x, _query.y))
+      implicit val ordering = Ordering.fromLessThan(isNearer)
+      // knn remain the same
+      val far = max(knn)
+      if (ins.exists(p => isNearer(p, far))) recalculateKnn
+    }
+    else recalculateKnn
+
+    def recalculateKnn {
+      rnn = tree.knn((k * rho).toInt, (_query.x, _query.y))._1
+      // TODO confirm the function of the "distinct" operation
+      ins = (rnn.flatMap(f => f.getNeighbors) ::: rnn).distinct.filterNot(f => knn.exists(e => e.id == f.id))
+      val pointsExcluded = points.filterNot(p => knn.exists(e => e.id == p.id))
+      clip = Nil
+      for (p <- knn) clip ::= singleVoronoi(pointsExcluded, p)
+    }
+  }
+
+  def max(list: List[NeighboredSiteMemory]) = {
+    if (_query != null) {
+      def isNearer(a: NeighboredSiteMemory, b: NeighboredSiteMemory): Boolean =
+        pointsDistanceNS(a, (_query.x, _query.y)) < pointsDistanceNS(b, (_query.x, _query.y))
+      implicit val ordering = Ordering.fromLessThan(isNearer)
+      list.max
+    }
+    else null
+  }
+
+  def min(list: List[NeighboredSiteMemory]) = {
+    if (_query != null) {
+      def isNearer(a: NeighboredSiteMemory, b: NeighboredSiteMemory): Boolean =
+        pointsDistanceNS(a, (_query.x, _query.y)) < pointsDistanceNS(b, (_query.x, _query.y))
+      implicit val ordering = Ordering.fromLessThan(isNearer)
+      list.min
+    }
+    else null
   }
 
   def reset(num: Int, k: Int, rho: Double, width: Int, height: Int) {
@@ -88,9 +125,7 @@ object DemoData {
   }
 
   def singleVoronoi(ps: List[NeighboredSiteMemory], p: NeighboredSiteMemory) = {
-    val aa = p::ps
-    val result = voronoi(aa)
-    aa foreach (m => println(m.id))
+    val result = voronoi(p :: ps)
     result(1).asInstanceOf[MWArray].get(Array(9, 1)).asInstanceOf[Array[Array[Double]]](0)
       .map(d => (result(0).asInstanceOf[MWNumericArray].getDouble(Array(d.toInt, 1)),
       result(0).asInstanceOf[MWNumericArray].getDouble(Array(d.toInt, 2))

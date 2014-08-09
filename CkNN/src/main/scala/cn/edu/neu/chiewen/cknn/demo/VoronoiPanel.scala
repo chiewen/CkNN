@@ -1,6 +1,6 @@
 package cn.edu.neu.chiewen.cknn.demo
 
-import java.awt.{Polygon, Color, geom}
+import java.awt.{Color, Polygon, geom}
 
 import cn.edu.neu.chiewen.cknn.algorithms.Util
 import cn.edu.neu.chiewen.cknn.site.NeighboredSiteMemory
@@ -16,6 +16,9 @@ class VoronoiPanel extends Panel {
   background = Color.white
   preferredSize = (VoronoiPanel.WIDTH, VoronoiPanel.HEIGHT)
 
+  var pVor = new geom.GeneralPath
+  var pCompare = new geom.GeneralPath
+
   focusable = true
   listenTo(mouse.clicks, mouse.moves, keys)
 
@@ -23,23 +26,12 @@ class VoronoiPanel extends Panel {
     case e: MousePressed =>
       DemoData.query = e.point
       requestFocusInWindow()
-      path.reset()
-      repaint
-    case e: MouseMoved => {
-      path.reset()
-      if (DemoData.query != null) {
-        moveTo(DemoData.query)
-        lineTo(e.point)
-      }
-    }
-    case KeyTyped(_, 'c', _, _) =>
-      path.reset
       repaint
     case _: FocusLost => repaint()
   }
 
   def reset() {
-    //draw order-1 Voronoi cells
+    //order-1 Voronoi cells
     pVor = new geom.GeneralPath
     if (DemoData.voronoi != null) {
       for (p <- DemoData.voronoi) {
@@ -47,23 +39,7 @@ class VoronoiPanel extends Panel {
         for (m <- p) pVor.lineTo(m._1, m._2)
       }
     }
-    path.reset
     repaint
-  }
-
-  /* records the dragging */
-  var path = new geom.GeneralPath
-  var pVor = new geom.GeneralPath
-  var pClip = new geom.GeneralPath
-
-  def lineTo(p: Point) {
-    path.lineTo(p.x, p.y)
-    repaint()
-  }
-
-  def moveTo(p: Point) {
-    path.moveTo(p.x, p.y)
-    repaint()
   }
 
   override def paintComponent(g: Graphics2D) = {
@@ -75,13 +51,11 @@ class VoronoiPanel extends Panel {
         VoronoiPanel.POINT_WIDTH + 2 * e, VoronoiPanel.POINT_WIDTH + 2 * e)
     }
 
-
-    if (DemoData.rnn != null) {
+    if (DemoData.clip != null) {
       g.setColor(Color.cyan)
       var polygons: List[Polygon] = Nil
       for (c <- DemoData.clip) {
         val p = new Polygon()
-        p.addPoint(c.last._1.toInt, c.last._2.toInt)
         for (i <- c)
           p.addPoint(i._1.toInt, i._2.toInt)
         polygons ::= p
@@ -93,36 +67,62 @@ class VoronoiPanel extends Panel {
       g.setClip(all)
     }
 
-
+    //the objects
     g.setColor(Color.blue)
     if (DemoData.points != null) for (i <- DemoData.points) fillCircle(i)
 
+    //Voronoi cells
+    g.setColor(Color.lightGray)
+    g.draw(pVor)
+
     if (DemoData.rnn != null) {
+      //the compared pair
+      val far = DemoData.max(DemoData.knn)
+      val near = DemoData.min(DemoData.ins)
       g.setColor(Color.red)
-      for (i <- DemoData.rnn) fillCircle(i)
-      val disR = Util.pointsDistance((DemoData.query.x, DemoData.query.y),
-        DemoData.rnn((DemoData.k * DemoData.rho).toInt - 1).position)
-      g.drawOval((DemoData.query.x - disR).toInt, (DemoData.query.y - disR).toInt, 2 * disR.toInt, 2 * disR.toInt)
+      g.drawOval((far._1 - 8).toInt, (far._2 - 8).toInt, 16, 16)
+      g.drawOval((near._1 - 8).toInt, (near._2 - 8).toInt, 16, 16)
+
+      val longEdge = Util.pointsDistance(far, near)
+      val middle = ((far._1 + near._1) / 2, (far._2 + near._2) / 2)
+      pCompare.reset
+      pCompare.moveTo(middle._1 + 10000 * (far._2 - near._2) / longEdge, middle._2 + 10000 * (near._1 - far._1) / longEdge)
+      pCompare.lineTo(middle._1 - 10000 * (far._2 - near._2) / longEdge, middle._2 - 10000 * (near._1 - far._1) / longEdge)
+
+      //rnn
+      if ((DemoData.rho * DemoData.k).toInt > DemoData.k) {
+        g.setColor(Color.red)
+        for (i <- DemoData.rnn) fillCircle(i)
+        val disR = Util.pointsDistance((DemoData.query.x, DemoData.query.y),
+          DemoData.max(DemoData.rnn).position)
+        g.drawOval((DemoData.query.x - disR).toInt, (DemoData.query.y - disR).toInt, 2 * disR.toInt, 2 * disR.toInt)
+      }
+
+      //knn
       g.setColor(Color.green)
       for (i <- DemoData.knn) fillCircle(i)
-      val disK = Util.pointsDistance((DemoData.query.x, DemoData.query.y), DemoData.rnn(DemoData.k - 1).position)
+      val disK = Util.pointsDistance((DemoData.query.x, DemoData.query.y), DemoData.max(DemoData.knn).position)
       g.drawOval((DemoData.query.x - disK).toInt, (DemoData.query.y - disK).toInt, 2 * disK.toInt, 2 * disK.toInt)
+
+      //query object
       g.setColor(Color.black)
       g.fillRect(DemoData.query.x - VoronoiPanel.POINT_WIDTH / 2,
         DemoData.query.y - VoronoiPanel.POINT_WIDTH / 2,
         VoronoiPanel.POINT_WIDTH, VoronoiPanel.POINT_WIDTH)
 
-      g.setColor(Color.green)
+      //enlarged ins set
+      g.setColor(Color.black)
       val e = 1
-      for (i <- DemoData.ins) g.drawOval(i.position._1.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
+      for (i <- DemoData.ins) g.drawRect(i.position._1.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
         i.position._2.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
         VoronoiPanel.POINT_WIDTH + 2 * e, VoronoiPanel.POINT_WIDTH + 2 * e)
     }
 
+    //the trajectory
     g.setColor(Color.black)
-    g.draw(path)
-    g.setColor(Color.lightGray)
-    g.draw(pVor)
+
+    //the division line
+    g.draw(pCompare)
   }
 }
 
