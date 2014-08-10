@@ -28,44 +28,44 @@ class VoronoiPanel extends Panel {
     case e: MousePressed =>
       DemoData.query = e.point
       requestFocusInWindow()
-      repaint
+      repaint()
     case e: MouseDragged =>
       DemoData.query = e.point
-      repaint
+      repaint()
     case KeyTyped(_, 'r', _, _) =>
       DemoData.refresh
-      repaint
+      repaint()
     case NotNeedRefreshEvent =>
       needRefresh = false
-      repaint
+      repaint()
     case NeedRefreshEvent =>
       needRefresh = true
-      repaint
+      repaint()
     case BeginCalculatingEvent =>
       needRefresh = false
       isCalculating = true
-      repaint
+      repaint()
     case DataFinishedEvent =>
       isCalculating = false
-      repaint
+      repaint()
     case _: FocusLost => repaint()
   }
 
   def reset() {
     //order-1 Voronoi cells
-    pVor = new geom.GeneralPath
+    pVor.reset()
     if (DemoData.voronoi != null) {
       for (p <- DemoData.voronoi) {
         pVor.moveTo(p.last._1, p.last._2)
         for (m <- p) pVor.lineTo(m._1, m._2)
       }
     }
-    repaint
+    repaint()
   }
 
   override def paintComponent(g: Graphics2D) = {
     super.paintComponent(g)
-    pCompare.reset
+    pCompare.reset()
     val all = new Rectangle(0, 0, VoronoiPanel.WIDTH * 2, VoronoiPanel.HEIGHT * 2)
 
     def fillCircle(i: NeighboredSiteMemory, e: Int = 0) {
@@ -122,8 +122,8 @@ class VoronoiPanel extends Panel {
         DemoData.min(DemoData.ins).position)
       g.drawOval((DemoData.query.x - disR).toInt, (DemoData.query.y - disR).toInt, 2 * disR.toInt, 2 * disR.toInt)
 
-      //rnn
-      if ((DemoData.rho * DemoData.k).toInt > DemoData.k) for (i <- DemoData.rnn) fillCircle(i)
+      //ins
+      if ((DemoData.rho * DemoData.k).toInt > DemoData.k) for (i <- DemoData.ins) fillCircle(i)
 
       //knn
       g.setColor(Color.green)
@@ -137,19 +137,21 @@ class VoronoiPanel extends Panel {
         DemoData.query.y - VoronoiPanel.POINT_WIDTH / 2,
         VoronoiPanel.POINT_WIDTH, VoronoiPanel.POINT_WIDTH)
 
-      //enlarged ins set
-      g.setColor(Color.black)
+      //enlarged rnn set
+      g.setColor(Color.green.darker())
       val e = 1
-      for (i <- DemoData.ins) g.drawRect(i.position._1.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
-        i.position._2.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
-        VoronoiPanel.POINT_WIDTH + 2 * e, VoronoiPanel.POINT_WIDTH + 2 * e)
+      for (i <- DemoData.rnn.filterNot(p => DemoData.knn.exists(e => e.id == p.id)))
+        g.drawRect(i.position._1.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
+          i.position._2.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
+          VoronoiPanel.POINT_WIDTH + 2 * e, VoronoiPanel.POINT_WIDTH + 2 * e)
     }
 
     //the division line
+    if (needRefresh) g.setColor(Color.red) else g.setColor(Color.green)
     g.draw(pCompare)
 
     g.setColor(Color.black)
-    if (isCalculating)
+    if (isCalculating && !needRefresh)
       g.drawString("Calculating Order-" + DemoData.k + " Voronoi cell...", 10, size.height - 10)
     if (needRefresh)
       g.drawString("The kNN set is invalid. Press 'r' to refresh.", 10, size.height - 10)

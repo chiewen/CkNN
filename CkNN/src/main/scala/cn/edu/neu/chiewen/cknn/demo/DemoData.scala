@@ -53,21 +53,21 @@ object DemoData extends Publisher {
       if (ins.exists(p => isNearer(p, far))) publish(NeedRefreshEvent)
       else publish(NotNeedRefreshEvent)
     }
-    else refresh
+    else refresh()
   }
 
-  def refresh {
+  def refresh() {
     if (rnn != null) {
       def isNearer(a: NeighboredSiteMemory, b: NeighboredSiteMemory): Boolean =
         pointsDistanceNS(a, (_query.x, _query.y)) < pointsDistanceNS(b, (_query.x, _query.y))
       implicit val ordering = Ordering.fromLessThan(isNearer)
       // knn remain the same
       val far = max(knn)
-      if (ins.exists(p => isNearer(p, far))) recalculateKnn
+      if (ins.exists(p => isNearer(p, far))) recalculateKnn()
     }
-    else recalculateKnn
+    else recalculateKnn()
 
-    def recalculateKnn {
+    def recalculateKnn() {
       publish(BeginCalculatingEvent)
 
       rnn = tree.knn((k * rho).toInt, (_query.x, _query.y))._1
@@ -76,7 +76,7 @@ object DemoData extends Publisher {
       val pointsExcluded = points.filterNot(p => knn.exists(e => e.id == p.id))
       clip = Nil
 
-      implicit val ec = global
+      implicit val ec = global()
       val system = ActorSystem("default")
       val actor = system.actorOf(Props(new OrderKVoronoiActor))
       implicit val timeout = Timeout(25 seconds)
@@ -126,7 +126,10 @@ object DemoData extends Publisher {
 
     //add far points
     val i = points.size
-    val FAR = 10000
+
+    //the Voronoi diagram will include wired additional lines. The smaller 'FAR' is the more wired lines occur.
+    //Looks like some bug in Matlab.
+    val FAR = 100000
     points ::= new NeighboredSiteMemory(i + 1, (-1 * FAR, -1 * FAR))
     points ::= new NeighboredSiteMemory(i + 2, (width / 2, -1 * FAR))
     points ::= new NeighboredSiteMemory(i + 3, (FAR, -1 * FAR))
