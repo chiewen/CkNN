@@ -33,7 +33,7 @@ class VoronoiPanel extends Panel {
       DemoData.query = e.point
       repaint()
     case KeyTyped(_, 'r', _, _) =>
-      DemoData.refresh
+      DemoData.refresh()
       repaint()
     case NotNeedRefreshEvent =>
       needRefresh = false
@@ -123,7 +123,7 @@ class VoronoiPanel extends Panel {
       g.drawOval((DemoData.query.x - disR).toInt, (DemoData.query.y - disR).toInt, 2 * disR.toInt, 2 * disR.toInt)
 
       //ins
-      if ((DemoData.rho * DemoData.k).toInt > DemoData.k) for (i <- DemoData.ins) fillCircle(i)
+      for (i <- DemoData.ins) fillCircle(i)
 
       //knn
       g.setColor(Color.green)
@@ -140,10 +140,11 @@ class VoronoiPanel extends Panel {
       //enlarged rnn set
       g.setColor(Color.green.darker())
       val e = 1
-      for (i <- DemoData.rnn.filterNot(p => DemoData.knn.exists(e => e.id == p.id)))
-        g.drawRect(i.position._1.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
-          i.position._2.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
-          VoronoiPanel.POINT_WIDTH + 2 * e, VoronoiPanel.POINT_WIDTH + 2 * e)
+      //if ((DemoData.rho * DemoData.k).toInt > DemoData.k)
+        for (i <- DemoData.rnn)//.filterNot(p => DemoData.knn.exists(e => e.id == p.id)))
+          g.drawRect(i.position._1.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
+            i.position._2.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
+            VoronoiPanel.POINT_WIDTH + 2 * e, VoronoiPanel.POINT_WIDTH + 2 * e)
     }
 
     //the division line

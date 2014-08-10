@@ -33,6 +33,7 @@ object DemoData extends Publisher {
   var rho: Double = 1
   var rnn: List[NeighboredSiteMemory] = null
   var ins: List[NeighboredSiteMemory] = null
+  var all: List[NeighboredSiteMemory] = null
   var clip: List[Array[(Double, Double)]] = null
 
   def knn = if (rnn == null) null else rnn.take(k)
@@ -63,16 +64,20 @@ object DemoData extends Publisher {
       implicit val ordering = Ordering.fromLessThan(isNearer)
       // knn remain the same
       val far = max(knn)
-      if (ins.exists(p => isNearer(p, far))) recalculateKnn()
+      if (ins.exists(p => isNearer(p, far))){
+        val firstK = all.sorted.take(k)
+        if (firstK.forall(f => rnn.exists(r => r.id == f.id))) {
+          publish(BeginCalculatingEvent)
+          rnn = rnn.sorted
+          ins = all.filterNot(f => knn.exists(r => f.id == r.id))
+          calcClip
+        }
+        else recalculateKnn()
+      }
     }
     else recalculateKnn()
 
-    def recalculateKnn() {
-      publish(BeginCalculatingEvent)
-
-      rnn = tree.knn((k * rho).toInt, (_query.x, _query.y))._1
-      // TODO confirm the function of the "distinct" operation
-      ins = (rnn.flatMap(f => f.getNeighbors) ::: rnn).distinct.filterNot(f => knn.exists(e => e.id == f.id))
+    def calcClip {
       val pointsExcluded = points.filterNot(p => knn.exists(e => e.id == p.id))
       clip = Nil
 
@@ -86,6 +91,16 @@ object DemoData extends Publisher {
         system.shutdown()
         publish(DataFinishedEvent)
       }
+    }
+
+    def recalculateKnn() {
+      publish(BeginCalculatingEvent)
+
+      rnn = tree.knn((k * rho).toInt, (_query.x, _query.y))._1
+      all = (rnn.flatMap(f => f.getNeighbors) ::: rnn).distinct
+      // TODO confirm the function of the "distinct" operation
+      ins = all.filterNot(f => knn.exists(e => e.id == f.id))
+      calcClip
     }
   }
 
@@ -118,6 +133,7 @@ object DemoData extends Publisher {
     _query = null
     rnn = null
     ins = null
+    all = null
     clip = null
   }
 
