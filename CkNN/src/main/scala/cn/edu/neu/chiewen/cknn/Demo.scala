@@ -50,7 +50,7 @@ object Demo extends SimpleSwingApplication {
 
     listenTo(btnReset)
     reactions += {
-      case ButtonClicked(_) => resetDemoData
+      case ButtonClicked(_) => resetDemoData()
     }
 
     layout(lblN) = resetConstraint(cons, 0)
