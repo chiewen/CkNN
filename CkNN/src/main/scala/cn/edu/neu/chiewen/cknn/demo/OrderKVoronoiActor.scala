@@ -14,7 +14,7 @@ class OrderKVoronoiActor extends Actor {
 
   def receive = {
     case StartCalcOrderK(knn, list) =>
-      listSender = Some(sender)
+      listSender = Some(sender())
       for (p <- knn) {
         context.actorOf(Props[SingleVoronoiActor]) ! ProcessVoronoiMsg(p :: list)
       }
