@@ -1,6 +1,9 @@
 package cn.edu.neu.chiewen.cknn.demo
 
 import java.awt.{Color, Polygon, geom}
+import javax.swing.BorderFactory
+
+//import javax.swing.border._
 
 import cn.edu.neu.chiewen.cknn.algorithms.Util
 import cn.edu.neu.chiewen.cknn.site.NeighboredSiteMemory
@@ -14,6 +17,8 @@ import scala.swing.event._
  */
 class VoronoiPanel extends Panel {
   background = Color.white
+  border = BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.LOWERED)
+
   preferredSize = (VoronoiPanel.WIDTH, VoronoiPanel.HEIGHT)
 
   var pVor = new geom.GeneralPath
@@ -160,7 +165,7 @@ class VoronoiPanel extends Panel {
 }
 
 object VoronoiPanel {
-  val HEIGHT: Int = 300
-  val WIDTH: Int = 300
+  val HEIGHT: Int = 200
+  val WIDTH: Int = 200
   val POINT_WIDTH: Int = 6
 }

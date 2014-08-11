@@ -45,7 +45,7 @@ object Demo extends SimpleSwingApplication {
     val lblRho = newLabel("rho = ")
     val txtRho = newField(1)
     txtRho.text = "1.6"
-    val btnReset = new Button("Set Objects")
+    val btnReset = new Button("Reset Params")
     val panel = new VoronoiPanel
 
     listenTo(btnReset)
