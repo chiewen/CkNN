@@ -71,7 +71,7 @@ object Demo extends SimpleSwingApplication {
     layout(panel) = cons
 
 
-    def resetDemoData {
+    def resetDemoData() {
       DemoData.reset(txtN.text.toInt, txtK.text.toInt, txtRho.text.toDouble,
         panel.size.getWidth.toInt,
         panel.size.getHeight.toInt)
