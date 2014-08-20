@@ -25,6 +25,7 @@ class VoronoiPanel extends Panel {
   var pCompare = new geom.GeneralPath
   var isCalculating = false
   var needRefresh = false
+  var auto = false
 
   focusable = true
   listenTo(mouse.clicks, mouse.moves, keys, DemoData)
@@ -156,11 +157,13 @@ class VoronoiPanel extends Panel {
     if (needRefresh) g.setColor(Color.red) else g.setColor(Color.green)
     g.draw(pCompare)
 
-    g.setColor(Color.black)
-    if (isCalculating && !needRefresh)
-      g.drawString("Calculating Order-" + DemoData.k + " Voronoi cell...", 10, size.height - 10)
-    if (needRefresh)
-      g.drawString("The kNN set is invalid. Press 'r' to refresh.", 10, size.height - 10)
+    if (!DemoData._auto) {
+      g.setColor(Color.black)
+      if (isCalculating && !needRefresh)
+        g.drawString("Calculating Order-" + DemoData.k + " Voronoi cell...", 10, size.height - 10)
+      if (needRefresh)
+        g.drawString("The kNN set is invalid. Press 'r' to refresh.", 10, size.height - 10)
+    }
   }
 }
 

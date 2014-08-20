@@ -38,34 +38,41 @@ object Demo extends SimpleSwingApplication {
       c
     }
 
-    val lblN = newLabel("n = ")
+    val btnReset = new Button("Reset")
+    val lblN = newLabel("n=")
     val txtN = newField(50)
-    val lblK = newLabel("k = ")
+    val lblK = newLabel("k=")
     val txtK = newField(5)
-    val lblRho = newLabel("rho = ")
+    val lblRho = newLabel("rho=")
     val txtRho = newField(1)
     txtRho.text = "1.6"
-    val btnReset = new Button("Reset Params")
-    val panel = new VoronoiPanel
 
-    listenTo(btnReset)
-    reactions += {
-      case ButtonClicked(_) => resetDemoData()
+    val chkAuto = new CheckBox {
+      text = "auto kNN"
+      selected = true
     }
 
-    layout(lblN) = resetConstraint(cons, 0)
-    layout(txtN) = resetConstraint(cons, 1)
-    layout(lblK) = resetConstraint(cons, 2)
-    layout(txtK) = resetConstraint(cons, 3)
-    layout(lblRho) = resetConstraint(cons, 4)
-    layout(txtRho) = resetConstraint(cons, 5)
-    layout(btnReset) = resetConstraint(cons, 6)
+    val panel = new VoronoiPanel
+
+    listenTo(btnReset, chkAuto)
+    reactions += {
+      case ButtonClicked(b) => if (b == btnReset) resetDemoData() else DemoData.auto = chkAuto.selected
+    }
+
+    layout(btnReset) = resetConstraint(cons, 0)
+    layout(lblN) = resetConstraint(cons, 1)
+    layout(txtN) = resetConstraint(cons, 2)
+    layout(lblK) = resetConstraint(cons, 3)
+    layout(txtK) = resetConstraint(cons, 4)
+    layout(lblRho) = resetConstraint(cons, 5)
+    layout(txtRho) = resetConstraint(cons, 6)
+    layout(chkAuto) = resetConstraint(cons, 7)
 
     cons.fill = Fill.Horizontal
     cons.ipady = VoronoiPanel.HEIGHT //make this component tall
     cons.ipadx = VoronoiPanel.WIDTH
     cons.weightx = 0.0
-    cons.gridwidth = 7
+    cons.gridwidth = 8
     cons.gridx = 0
     cons.gridy = 1
     layout(panel) = cons

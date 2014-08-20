@@ -22,6 +22,7 @@ case object NeedRefreshEvent extends Event
 
 case object NotNeedRefreshEvent extends Event
 
+
 /**
  * Created by chiewen on 8/8/14.
  */
@@ -35,6 +36,14 @@ object DemoData extends Publisher {
   var ins: List[NeighboredSiteMemory] = null
   var all: List[NeighboredSiteMemory] = null
   var clip: List[Array[(Double, Double)]] = null
+  var _auto = true
+
+  def auto = _auto
+
+  def auto_= (a: Boolean) {
+    _auto = a
+    if (_auto) clip = null
+  }
 
   def knn = if (rnn == null) null else rnn.take(k)
 
@@ -45,16 +54,19 @@ object DemoData extends Publisher {
   def query_=(p: Point) {
     _query = p
 
-    if (rnn != null) {
-      def isNearer(a: NeighboredSiteMemory, b: NeighboredSiteMemory): Boolean =
-        pointsDistanceNS(a, (_query.x, _query.y)) < pointsDistanceNS(b, (_query.x, _query.y))
-      implicit val ordering = Ordering.fromLessThan(isNearer)
-      // knn remain the same
-      val far = max(knn)
-      if (ins.exists(p => isNearer(p, far))) publish(NeedRefreshEvent)
-      else publish(NotNeedRefreshEvent)
+    if (_auto) refresh()
+    else {
+      if (rnn != null) {
+        def isNearer(a: NeighboredSiteMemory, b: NeighboredSiteMemory): Boolean =
+          pointsDistanceNS(a, (_query.x, _query.y)) < pointsDistanceNS(b, (_query.x, _query.y))
+        implicit val ordering = Ordering.fromLessThan(isNearer)
+        // knn remain the same
+        val far = max(knn)
+        if (ins.exists(p => isNearer(p, far))) publish(NeedRefreshEvent)
+        else publish(NotNeedRefreshEvent)
+      }
+      else refresh()
     }
-    else refresh()
   }
 
   def refresh() {
@@ -78,6 +90,8 @@ object DemoData extends Publisher {
     else recalculateKnn()
 
     def calcClip {
+      if (_auto) return
+
       val pointsExcluded = points.filterNot(p => knn.exists(e => e.id == p.id))
       clip = Nil
 
