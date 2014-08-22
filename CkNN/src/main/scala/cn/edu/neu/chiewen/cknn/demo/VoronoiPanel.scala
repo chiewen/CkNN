@@ -145,10 +145,10 @@ class VoronoiPanel extends Panel {
 
     if (!DemoData._auto) {
       g.setColor(Color.black)
-      if (DemoData.isCalculating && !DemoData.needRefresh)
-        g.drawString("Calculating Order-" + DemoData.k + " Voronoi cell...", 10, size.height - 10)
       if (DemoData.needRefresh)
         g.drawString("The kNN set is invalid. Press 'r' to refresh.", 10, size.height - 10)
+      else if (DemoData.isCalculating)
+        g.drawString("Calculating Order-" + DemoData.k + " Voronoi cell...", 10, size.height - 10)
     }
   }
 
