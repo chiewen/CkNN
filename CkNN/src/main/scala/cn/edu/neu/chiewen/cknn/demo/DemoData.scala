@@ -14,114 +14,118 @@ import scala.concurrent.duration._
 import scala.swing.event.Event
 import scala.swing.{Point, Publisher}
 
-case object DataFinishedEvent extends Event
+//case object DataFinishedEvent extends Event
 
-case object BeginCalculatingEvent extends Event
+//case object BeginCalculatingEvent extends Event
 
-case object NeedRefreshEvent extends Event
+//case object NeedRefreshEvent extends Event
 
-case object NotNeedRefreshEvent extends Event
+//case object NotNeedRefreshEvent extends Event
+
+case object RepaintEvent extends Event
 
 
 /**
  * Created by chiewen on 8/8/14.
  */
 object DemoData extends Publisher {
-  var points: List[NeighboredSiteMemory] = null
-  var voronoi: List[Array[(Double, Double)]] = null
+  val system = ActorSystem("default")
+
+  var isCalculating = false
+  var needRefresh = false
+
+  var points: List[NeighboredSiteMemory] = Nil
+  var voronoi: List[Array[(Double, Double)]] = Nil
   var tree: VTree = null
   var k: Int = 0
   var rho: Double = 1
   var rnn: List[NeighboredSiteMemory] = null
   var ins: List[NeighboredSiteMemory] = null
   var all: List[NeighboredSiteMemory] = null
-  var clip: List[Array[(Double, Double)]] = null
+  var clip: List[Array[(Double, Double)]] = Nil
+  var query: Point = null
   var _auto = true
 
   def auto = _auto
 
-  def auto_= (a: Boolean) {
-    _auto = a
-    if (_auto) clip = null
+  def auto_=(a: Boolean) {
+    _auto = !a
+    if (_auto) clip = Nil
+    validate
+    publish(RepaintEvent)
   }
 
   def knn = if (rnn == null) null else rnn.take(k)
 
-  private var _query: Point = null
-
-  def query = _query
-
-  def query_=(p: Point) {
-    _query = p
-
-    if (_auto) refresh()
-    else {
-      if (rnn != null) {
-        def isNearer(a: NeighboredSiteMemory, b: NeighboredSiteMemory): Boolean =
-          pointsDistanceNS(a, (_query.x, _query.y)) < pointsDistanceNS(b, (_query.x, _query.y))
-        implicit val ordering = Ordering.fromLessThan(isNearer)
-        // knn remain the same
-        val far = max(knn)
-        if (ins.exists(p => isNearer(p, far))) publish(NeedRefreshEvent)
-        else publish(NotNeedRefreshEvent)
-      }
-      else refresh()
+  def validate {
+    if (auto) {
+      if (!isValid) refresh()
     }
+    else {
+      if (isValid) {
+        needRefresh = false
+        if (clip.isEmpty) calcClip
+      }
+      else needRefresh = true
+      publish(RepaintEvent)
+    }
+  }
+
+  def isNearer(a: NeighboredSiteMemory, b: NeighboredSiteMemory): Boolean =
+    pointsDistanceNS(a, (query.x, query.y)) < pointsDistanceNS(b, (query.x, query.y))
+
+  implicit val ordering = Ordering.fromLessThan(isNearer)
+
+  def isValid: Boolean = {
+    if (rnn == null) recalculateKnn()
+    if (ins.exists(p => isNearer(p, max(knn)))) false else true
   }
 
   def refresh() {
-    if (rnn != null) {
-      def isNearer(a: NeighboredSiteMemory, b: NeighboredSiteMemory): Boolean =
-        pointsDistanceNS(a, (_query.x, _query.y)) < pointsDistanceNS(b, (_query.x, _query.y))
-      implicit val ordering = Ordering.fromLessThan(isNearer)
-      // knn remain the same
-      val far = max(knn)
-      if (ins.exists(p => isNearer(p, far))){
-        val firstK = all.sorted.take(k)
-        if (firstK.forall(f => rnn.exists(r => r.id == f.id))) {
-          publish(BeginCalculatingEvent)
-          rnn = rnn.sorted
-          ins = all.filterNot(f => knn.exists(r => f.id == r.id))
-          calcClip
-        }
-        else recalculateKnn()
-      }
+    val firstK = all.sorted.take(k)
+    if (firstK.forall(f => rnn.exists(r => r.id == f.id))) {
+      needRefresh = false
+      publish(RepaintEvent)
+      rnn = rnn.sorted
+      ins = all.filterNot(f => knn.exists(r => f.id == r.id))
     }
     else recalculateKnn()
+    calcClip
+  }
 
-    def calcClip {
-      if (_auto) return
+  def calcClip {
+    if (_auto) return
 
-      val pointsExcluded = points.filterNot(p => knn.exists(e => e.id == p.id))
-      clip = Nil
+    val pointsExcluded = points.filterNot(p => knn.exists(e => e.id == p.id))
+    clip = Nil
 
-      implicit val ec = global()
-      val system = ActorSystem("default")
-      val actor = system.actorOf(Props(new OrderKVoronoiActor))
-      implicit val timeout = Timeout(25 seconds)
-      val future = actor ? StartCalcOrderK(knn, pointsExcluded)
-      future.map { result =>
-        clip = result.asInstanceOf[List[Array[(Double, Double)]]]
-        system.shutdown()
-        publish(DataFinishedEvent)
-      }
-    }
-
-    def recalculateKnn() {
-      publish(BeginCalculatingEvent)
-
-      rnn = tree.knn((k * rho).toInt, (_query.x, _query.y))._1
-      all = (rnn.flatMap(f => f.getNeighbors) ::: rnn).distinct
-      // TODO confirm the function of the "distinct" operation
-      ins = all.filterNot(f => knn.exists(e => e.id == f.id))
-      calcClip
+    implicit val ec = global()
+    val actor = system.actorOf(Props(new OrderKVoronoiActor))
+    implicit val timeout = Timeout(10 seconds)
+    val future = actor ? StartCalcOrderK(knn, pointsExcluded)
+    future.map { result =>
+      clip = result.asInstanceOf[List[Array[(Double, Double)]]]
+      isCalculating = false
+      publish(RepaintEvent)
     }
   }
 
+  def recalculateKnn() {
+    needRefresh = false
+    isCalculating = true
+    publish(RepaintEvent)
+
+    rnn = tree.knn((k * rho).toInt, (query.x, query.y))._1
+    all = (rnn.flatMap(f => f.getNeighbors) ::: rnn).distinct
+
+    // TODO confirm the function of the "distinct" operation
+    ins = all.filterNot(f => knn.exists(e => e.id == f.id))
+  }
+
   def max(list: List[NeighboredSiteMemory]) = {
-    if (_query != null) {
+    if (query != null) {
       def isNearer(a: NeighboredSiteMemory, b: NeighboredSiteMemory): Boolean =
-        pointsDistanceNS(a, (_query.x, _query.y)) < pointsDistanceNS(b, (_query.x, _query.y))
+        pointsDistanceNS(a, (query.x, query.y)) < pointsDistanceNS(b, (query.x, query.y))
       implicit val ordering = Ordering.fromLessThan(isNearer)
       list.max
     }
@@ -129,9 +133,9 @@ object DemoData extends Publisher {
   }
 
   def min(list: List[NeighboredSiteMemory]) = {
-    if (_query != null) {
+    if (query != null) {
       def isNearer(a: NeighboredSiteMemory, b: NeighboredSiteMemory): Boolean =
-        pointsDistanceNS(a, (_query.x, _query.y)) < pointsDistanceNS(b, (_query.x, _query.y))
+        pointsDistanceNS(a, (query.x, query.y)) < pointsDistanceNS(b, (query.x, query.y))
       implicit val ordering = Ordering.fromLessThan(isNearer)
       list.min
     }
@@ -144,11 +148,11 @@ object DemoData extends Publisher {
     tree = VTree(points)
     this.k = k
     this.rho = rho
-    _query = null
+    query = null
     rnn = null
     ins = null
     all = null
-    clip = null
+    clip = Nil
   }
 
   def voronoi(ps: List[NeighboredSiteMemory], width: Int = 300, height: Int = 300): Array[Object] = {
@@ -157,7 +161,7 @@ object DemoData extends Publisher {
     //add far points
     val i = points.size
 
-    //the Voronoi diagram will include wired additional lines. The smaller 'FAR' is the more wired lines occur.
+    //the Voronoi diagram will include wired additional lines. The smaller the 'FAR' is, the more wired lines occur.
     //Looks like some bug in Matlab.
     val FAR = 100000
     points ::= new NeighboredSiteMemory(i + 1, (-1 * FAR, -1 * FAR))

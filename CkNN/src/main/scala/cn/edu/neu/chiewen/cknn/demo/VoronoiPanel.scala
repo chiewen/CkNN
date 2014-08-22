@@ -23,8 +23,6 @@ class VoronoiPanel extends Panel {
 
   var pVor = new geom.GeneralPath
   var pCompare = new geom.GeneralPath
-  var isCalculating = false
-  var needRefresh = false
   var auto = false
 
   focusable = true
@@ -33,26 +31,17 @@ class VoronoiPanel extends Panel {
   reactions += {
     case e: MousePressed =>
       DemoData.query = e.point
+      DemoData.validate
       requestFocusInWindow()
       repaint()
     case e: MouseDragged =>
       DemoData.query = e.point
+      DemoData.validate
       repaint()
     case KeyTyped(_, 'r', _, _) =>
       DemoData.refresh()
       repaint()
-    case NotNeedRefreshEvent =>
-      needRefresh = false
-      repaint()
-    case NeedRefreshEvent =>
-      needRefresh = true
-      repaint()
-    case BeginCalculatingEvent =>
-      needRefresh = false
-      isCalculating = true
-      repaint()
-    case DataFinishedEvent =>
-      isCalculating = false
+    case RepaintEvent =>
       repaint()
     case _: FocusLost => repaint()
   }
@@ -60,11 +49,9 @@ class VoronoiPanel extends Panel {
   def reset() {
     //order-1 Voronoi cells
     pVor.reset()
-    if (DemoData.voronoi != null) {
-      for (p <- DemoData.voronoi) {
-        pVor.moveTo(p.last._1, p.last._2)
-        for (m <- p) pVor.lineTo(m._1, m._2)
-      }
+    for (p <- DemoData.voronoi) {
+      pVor.moveTo(p.last._1, p.last._2)
+      for (m <- p) pVor.lineTo(m._1, m._2)
     }
     repaint()
   }
@@ -81,8 +68,8 @@ class VoronoiPanel extends Panel {
     }
 
     // order-k Voronoi cells
-    if (DemoData.clip != null && DemoData.clip.size > 0) {
-      if (needRefresh)
+    if (!DemoData.auto && !DemoData.clip.isEmpty) {
+      if (DemoData.needRefresh)
         g.setColor(new Color(255, 0, 0, 155))
       else
         g.setColor(Color.cyan)
@@ -101,7 +88,7 @@ class VoronoiPanel extends Panel {
 
     //the objects
     g.setColor(Color.blue)
-    if (DemoData.points != null) for (i <- DemoData.points) fillCircle(i)
+    for (i <- DemoData.points) fillCircle(i)
 
     //Voronoi cells
     g.setColor(Color.lightGray)
@@ -146,25 +133,25 @@ class VoronoiPanel extends Panel {
       //enlarged rnn set
       g.setColor(Color.green.darker())
       val e = 1
-      //if ((DemoData.rho * DemoData.k).toInt > DemoData.k)
-        for (i <- DemoData.rnn)//.filterNot(p => DemoData.knn.exists(e => e.id == p.id)))
-          g.drawRect(i.position._1.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
-            i.position._2.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
-            VoronoiPanel.POINT_WIDTH + 2 * e, VoronoiPanel.POINT_WIDTH + 2 * e)
+      for (i <- DemoData.rnn)
+        g.drawRect(i.position._1.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
+          i.position._2.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
+          VoronoiPanel.POINT_WIDTH + 2 * e, VoronoiPanel.POINT_WIDTH + 2 * e)
     }
 
     //the division line
-    if (needRefresh) g.setColor(Color.red) else g.setColor(Color.green)
+    if (DemoData.needRefresh) g.setColor(Color.red) else g.setColor(Color.green)
     g.draw(pCompare)
 
     if (!DemoData._auto) {
       g.setColor(Color.black)
-      if (isCalculating && !needRefresh)
+      if (DemoData.isCalculating && !DemoData.needRefresh)
         g.drawString("Calculating Order-" + DemoData.k + " Voronoi cell...", 10, size.height - 10)
-      if (needRefresh)
+      if (DemoData.needRefresh)
         g.drawString("The kNN set is invalid. Press 'r' to refresh.", 10, size.height - 10)
     }
   }
+
 }
 
 object VoronoiPanel {

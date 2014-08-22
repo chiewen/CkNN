@@ -48,8 +48,8 @@ object Demo extends SimpleSwingApplication {
     txtRho.text = "1.6"
 
     val chkAuto = new CheckBox {
-      text = "auto kNN"
-      selected = true
+      text = "Safe Region"
+      selected = false
     }
 
     val panel = new VoronoiPanel
@@ -91,5 +91,10 @@ object Demo extends SimpleSwingApplication {
     contents = ui
 
     ui.btnReset.doClick()
+
+    override def dispose(): Unit = {
+      DemoData.system.shutdown()
+      super.dispose()
+    }
   }
 }
