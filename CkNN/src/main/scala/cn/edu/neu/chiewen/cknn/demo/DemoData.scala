@@ -30,10 +30,9 @@ case object RepaintEvent extends Event
  */
 object DemoData extends Publisher {
   val system = ActorSystem("default")
-
+  implicit val ordering = Ordering.fromLessThan(isNearer)
   var isCalculating = false
   var needRefresh = false
-
   var points: List[NeighboredSiteMemory] = Nil
   var voronoi: List[Array[(Double, Double)]] = Nil
   var tree: VTree = null
@@ -57,7 +56,7 @@ object DemoData extends Publisher {
 
   def knn = if (rnn == null) null else rnn.take(k)
 
-  def validate {
+  def validate() {
     if (auto) {
       if (!isValid) refresh()
     }
@@ -73,8 +72,6 @@ object DemoData extends Publisher {
 
   def isNearer(a: NeighboredSiteMemory, b: NeighboredSiteMemory): Boolean =
     pointsDistanceNS(a, (query.x, query.y)) < pointsDistanceNS(b, (query.x, query.y))
-
-  implicit val ordering = Ordering.fromLessThan(isNearer)
 
   def isValid: Boolean = {
     if (rnn == null) recalculateKnn()
@@ -93,7 +90,7 @@ object DemoData extends Publisher {
     calcClip
   }
 
-  def calcClip {
+  def calcClip() {
     if (_auto) return
 
     val pointsExcluded = points.filterNot(p => knn.exists(e => e.id == p.id))
@@ -155,6 +152,25 @@ object DemoData extends Publisher {
     clip = Nil
   }
 
+  def calcVoronoi(ps: List[NeighboredSiteMemory], width: Int = 300, height: Int = 300) = {
+    val result = voronoi(ps, width, height)
+
+    (1 to ps.size + 8).map(p =>
+      result(1).asInstanceOf[MWArray].get(Array(p, 1)).asInstanceOf[Array[Array[Double]]](0)
+        .map(d => (result(0).asInstanceOf[MWNumericArray].getDouble(Array(d.toInt, 1)),
+        result(0).asInstanceOf[MWNumericArray].getDouble(Array(d.toInt, 2))
+        ))
+    ).toList
+  }
+
+  def singleVoronoi(ps: List[NeighboredSiteMemory]) = {
+    val result = voronoi(ps)
+    result(1).asInstanceOf[MWArray].get(Array(9, 1)).asInstanceOf[Array[Array[Double]]](0)
+      .map(d => (result(0).asInstanceOf[MWNumericArray].getDouble(Array(d.toInt, 1)),
+      result(0).asInstanceOf[MWNumericArray].getDouble(Array(d.toInt, 2))
+      ))
+  }
+
   def voronoi(ps: List[NeighboredSiteMemory], width: Int = 300, height: Int = 300): Array[Object] = {
     var points = ps.toList
 
@@ -162,7 +178,7 @@ object DemoData extends Publisher {
     val i = points.size
 
     //the Voronoi diagram will include wired additional lines. The smaller the 'FAR' is, the more wired lines occur.
-    //Looks like some bug in Matlab.
+    //Seems like some bug in Matlab.
     val FAR = 100000
     points ::= new NeighboredSiteMemory(i + 1, (-1 * FAR, -1 * FAR))
     points ::= new NeighboredSiteMemory(i + 2, (width / 2, -1 * FAR))
@@ -195,24 +211,5 @@ object DemoData extends Publisher {
       MWArray.disposeArray(x)
     }
     result
-  }
-
-  def singleVoronoi(ps: List[NeighboredSiteMemory]) = {
-    val result = voronoi(ps)
-    result(1).asInstanceOf[MWArray].get(Array(9, 1)).asInstanceOf[Array[Array[Double]]](0)
-      .map(d => (result(0).asInstanceOf[MWNumericArray].getDouble(Array(d.toInt, 1)),
-      result(0).asInstanceOf[MWNumericArray].getDouble(Array(d.toInt, 2))
-      ))
-  }
-
-  def calcVoronoi(ps: List[NeighboredSiteMemory], width: Int = 300, height: Int = 300) = {
-    val result = voronoi(ps, width, height)
-
-    (1 to ps.size + 8).map(p =>
-      result(1).asInstanceOf[MWArray].get(Array(p, 1)).asInstanceOf[Array[Array[Double]]](0)
-        .map(d => (result(0).asInstanceOf[MWNumericArray].getDouble(Array(d.toInt, 1)),
-        result(0).asInstanceOf[MWNumericArray].getDouble(Array(d.toInt, 2))
-        ))
-    ).toList
   }
 }

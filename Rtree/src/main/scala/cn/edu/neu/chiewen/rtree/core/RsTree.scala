@@ -9,12 +9,12 @@ import scala.collection.mutable.ListBuffer
  * During the winter vacation of 2012 in Yantai
  */
 class RsTree extends Serializable {
-  private var root: TreeNode = TreeNode(null, ListBuffer[Node](), true)
-  def getRoot = root
-
-  var M = 8
   val m = (M * .4).ceil.toInt
   val pr = (M * .3).ceil.toInt
+  var M = 4
+  private var root: TreeNode = TreeNode(null, ListBuffer[Node](), true)
+
+  def getRoot = root
 
   /**
    * Insert new entry into the tree
@@ -150,6 +150,18 @@ class RsTree extends Serializable {
     }
   }
 
+  def entries = {
+    var m = List[Mbr]()
+    def traverseTree(e: Node) {
+      e match {
+        case t: TreeNode => for (i <- t.children) traverseTree(i)
+        case e: EntryNode => m ::= e.mbr
+      }
+    }
+    traverseTree(root)
+    m
+  }
+
   private def lowerTreeWhenRootHasOnlyOneChild(n: TreeNode) {
     if (n.eq(root) && n.children.length == 1 && n.children(0).isInstanceOf[TreeNode]) {
       root = n.children(0).asInstanceOf[TreeNode]
@@ -163,18 +175,6 @@ class RsTree extends Serializable {
       case _ => dive(n.asInstanceOf[TreeNode].children(0))
     }
     dive(root)
-  }
-
-  def entries = {
-    var m = List[Mbr]()
-    def traverseTree(e: Node) {
-      e match {
-        case t: TreeNode => for (i <- t.children) traverseTree(i)
-        case e: EntryNode => m ::= e.mbr
-      }
-    }
-    traverseTree(root)
-    m
   }
 
 }

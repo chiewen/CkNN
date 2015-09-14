@@ -2,15 +2,15 @@ package cn.edu.neu.chiewen.cknn
 
 import cn.edu.neu.chiewen.cknn.demo.{DemoData, VoronoiPanel}
 
-import scala.swing.GridBagPanel._
+import scala.swing.GridBagPanel.Fill
 import scala.swing._
 import scala.swing.event.ButtonClicked
 
 /**
- * Demo for submission to ICDE 2015
- * Created by chiewen on 7/8/14.
+ * Created by Chiewen on 2015/9/14.
  */
-object Demo extends SimpleSwingApplication {
+object DemoRoad extends SimpleSwingApplication {
+
   lazy val ui = new GridBagPanel {
     val cons = new Constraints
     val shouldFill = true

@@ -9,11 +9,11 @@ import scala.collection.mutable.ListBuffer
  * During the winter vacation of 2012 in Yantai
  */
 class RTree {
-  private var root: TreeNode = TreeNode(null, new ListBuffer[Node], true)
-  def getRoot = root
-
-  val M = 8
+  val M = 4
   val m = M / 2
+  private var root: TreeNode = TreeNode(null, new ListBuffer[Node], true)
+
+  def getRoot = root
 
   /**
    * Insert new entry into the tree

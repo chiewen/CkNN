@@ -1,11 +1,12 @@
 package cn.edu.neu.chiewen.cknn.algorithms
 
 import java.lang.Math.{pow, sqrt}
-import cn.edu.neu.chiewen.cknn.{MatlabColor, MatlabFunctions}
+
 import cn.edu.neu.chiewen.cknn.settings.{IllustrateSettings, Settings}
 import cn.edu.neu.chiewen.cknn.site.NeighboredSiteMemory
 import cn.edu.neu.chiewen.cknn.trajectory.Trajectory
 import cn.edu.neu.chiewen.cknn.vtree.VTree
+import cn.edu.neu.chiewen.cknn.{MatlabColor, MatlabFunctions}
 import cn.edu.neu.chiewen.rtree.core.Mbr
 
 object Util {
@@ -16,9 +17,9 @@ object Util {
 
   def pointsDistanceNS(l: (Double, Double), r: (Double, Double)) = pow(l._1 - r._1, 2) + pow(l._2 - r._2, 2)
 
-  implicit def NeighboredSiteMem2DoubleTuple(p: NeighboredSiteMemory): (Double, Double) = (p.coordinates(0)._1, p.coordinates(1)._1)
+  implicit def NeighboredSiteMem2DoubleTuple(p: NeighboredSiteMemory): (Double, Double) = (p.coordinates.head._1, p.coordinates(1)._1)
 
-  implicit def DoubleTuple2Mbr(p: (Double, Double)) = new Mbr(List((p._1, p._1), (p._2, p._2)))
+  implicit def DoubleTuple2Mbr(p: (Double, Double)): Mbr = new Mbr(List((p._1, p._1), (p._2, p._2)))
 
   def printKnn(knn: List[NeighboredSiteMemory]) {
     for (p <- knn) print(p.id + " ")
@@ -36,7 +37,7 @@ object Util {
       if (conf.showPoints) plotter.drawPoints(sites)
       if (conf.showTrajectory) for (t <- trajectories) plotter.drawLines(MatlabColor.nextColor, t)
       if (conf.showPointNames) sites foreach plotter.drawName
-      plotter.hold
+      plotter.hold()
     }
   }
 }

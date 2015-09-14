@@ -21,7 +21,7 @@ class Trajectories {
 object Trajectories {
   def write(file: String) {
     val f = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))
-    f.writeObject(((Settings.applicationContext.getBean("trajectorySettings").asInstanceOf[TrajectorySettings]).factories).map(_.trajectory).toList)
+    f.writeObject(Settings.applicationContext.getBean("trajectorySettings").asInstanceOf[TrajectorySettings].factories.map(_.trajectory).toList)
     f.close()
   }
 }
