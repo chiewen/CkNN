@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module external.linked.project.id="cknn" external.linked.project.path="$MODULE_DIR$/../../CkNN" external.root.project.path="$MODULE_DIR$/../.." external.system.id="SBT" type="JAVA_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="Spring" name="Spring">
+      <configuration>
+        <fileset id="fileset" name="Spring Application Context" removed="false">
+          <file>file://$MODULE_DIR$/../../CkNN/src/main/resources/beans.xml</file>
+        </fileset>
+      </configuration>
+    </facet>
+  </component>
+  <component name="NewModuleRootManager" inherit-compiler-output="false">
+    <output url="file://$MODULE_DIR$/../../CkNN/target/scala-2.10/classes" />
+    <output-test url="file://$MODULE_DIR$/../../CkNN/target/scala-2.10/test-classes" />
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/../../CkNN">
+      <sourceFolder url="file://$MODULE_DIR$/../../CkNN/src/main/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../CkNN/src/main/scala" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../CkNN/target/scala-2.10/src_managed/main" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../CkNN/src/test/java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/../../CkNN/src/test/scala" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/../../CkNN/target/scala-2.10/src_managed/test" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/../../CkNN/src/main/resources" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/../../CkNN/target/scala-2.10/resource_managed/main" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/../../CkNN/src/test/resources" type="java-test-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/../../CkNN/target/scala-2.10/resource_managed/test" type="java-test-resource" />
+      <excludeFolder url="file://$MODULE_DIR$/../../CkNN/target" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="rtree" exported="" />
+    <orderEntry type="module-library">
+      <library name="SBT: unmanaged-jars">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../CkNN/lib/Plotter.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../CkNN/lib/javabuilder.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../CkNN/lib/Plotter.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../CkNN/lib/javabuilder.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../CkNN/lib/Plotter.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../CkNN/lib/javabuilder.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="SBT: aopalliance:aopalliance:1.0:jar" level="project" />
+    <orderEntry type="library" name="SBT: com.typesafe:config:1.2.1:jar" level="project" />
+    <orderEntry type="library" name="SBT: com.typesafe.akka:akka-actor_2.10:2.3.4:jar" level="project" />
+    <orderEntry type="library" name="SBT: commons-logging:commons-logging:1.1.1:jar" level="project" />
+    <orderEntry type="library" name="SBT: org.scala-lang:scala-library:2.10.4:jar" level="project" />
+    <orderEntry type="library" name="SBT: org.scala-lang:scala-swing:2.10.4:jar" level="project" />
+    <orderEntry type="library" name="SBT: org.springframework:spring-aop:3.2.5.RELEASE:jar" level="project" />
+    <orderEntry type="library" name="SBT: org.springframework:spring-beans:3.2.5.RELEASE:jar" level="project" />
+    <orderEntry type="library" name="SBT: org.springframework:spring-context:3.2.5.RELEASE:jar" level="project" />
+    <orderEntry type="library" name="SBT: org.springframework:spring-core:3.2.5.RELEASE:jar" level="project" />
+    <orderEntry type="library" name="SBT: org.springframework:spring-expression:3.2.5.RELEASE:jar" level="project" />
+  </component>
+</module>
