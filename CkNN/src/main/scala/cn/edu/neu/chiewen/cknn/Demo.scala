@@ -22,6 +22,7 @@ object Demo extends SimpleSwingApplication {
       text = i.toString
       columns = 1
       horizontalAlignment = Alignment.Right
+
     }
 
     def newLabel(label: String) = new Label {
