@@ -1,5 +1,7 @@
 package cn.edu.neu.chiewen.cknn.demo
 
+import java.io._
+
 import Plotter.MatlabPlotter
 import akka.actor.{ActorSystem, Props}
 import akka.dispatch.ExecutionContexts._
@@ -8,8 +10,10 @@ import akka.util.Timeout
 import cn.edu.neu.chiewen.cknn.algorithms.Util._
 import cn.edu.neu.chiewen.cknn.site.{NeighboredSiteMemory, SiteGenerator}
 import cn.edu.neu.chiewen.cknn.vtree.VTree
+import cn.edu.neu.chiewen.roadDemo.ui.RoadDemoData
 import com.mathworks.toolbox.javabuilder.{MWArray, MWClassID, MWComplexity, MWNumericArray}
 
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
 import scala.swing.event.Event
 import scala.swing.{Point, Publisher}
@@ -44,14 +48,24 @@ object DemoData extends Publisher {
   var clip: List[Array[(Double, Double)]] = Nil
   var query: Point = null
   var _auto = true
+  var _showVoronoi = false
+
+  val voronoiFileName: String = """CkNN/src/main/resources/voronoi"""
+  val vTreeFileName: String = """CkNN/src/main/resources/vtree"""
 
   def auto = _auto
 
   def auto_=(a: Boolean) {
     _auto = !a
     if (_auto) clip = Nil
-    validate
+    validate()
     publish(RepaintEvent)
+  }
+  
+  def showVoronoi = _showVoronoi
+  
+  def showVoronoi_=(show: Boolean): Unit = {
+    _showVoronoi = show
   }
 
   def knn = if (rnn == null) null else rnn.take(k)
@@ -63,7 +77,7 @@ object DemoData extends Publisher {
     else {
       if (isValid) {
         needRefresh = false
-        if (clip.isEmpty) calcClip
+        if (clip.isEmpty) calcClip()
       }
       else needRefresh = true
       publish(RepaintEvent)
@@ -87,7 +101,7 @@ object DemoData extends Publisher {
       ins = all.filterNot(f => knn.exists(r => f.id == r.id))
     }
     else recalculateKnn()
-    calcClip
+    calcClip()
   }
 
   def calcClip() {
@@ -140,9 +154,23 @@ object DemoData extends Publisher {
   }
 
   def reset(num: Int, k: Int, rho: Double, width: Int, height: Int) {
-    points = SiteGenerator.getSites(num, width, height - 25)
-    voronoi = calcVoronoi(points, width, height)
-    tree = VTree(points)
+    assert (RoadDemoData.nodes.nonEmpty)
+    val lb = ListBuffer[NeighboredSiteMemory]()
+    var i = 1
+    for (n <- RoadDemoData.nodes if n.isSite) {
+      lb.append(new NeighboredSiteMemory(i, (n.x, n.y)))
+      i += 1
+    }
+    points = lb.toList
+    //voronoi = calcVoronoi(points, width, height)
+    //tree = VTree(points)
+    val voronoiFle = new ObjectInputStream(new BufferedInputStream(new FileInputStream(voronoiFileName)))
+    voronoi = voronoiFle.readObject().asInstanceOf[List[Array[(Double, Double)]]]
+    voronoiFle.close()
+
+    val vTreeFile = new ObjectInputStream(new BufferedInputStream(new FileInputStream(vTreeFileName)))
+    tree = vTreeFile.readObject().asInstanceOf[VTree]
+    vTreeFile.close()
     this.k = k
     this.rho = rho
     query = null
@@ -152,14 +180,24 @@ object DemoData extends Publisher {
     clip = Nil
   }
 
+  def writeVoronoi(): Unit = {
+    val voronoiFle = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(voronoiFileName)))
+    voronoiFle.writeObject(voronoi)
+    voronoiFle.close()
+
+    val vTreeFile = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(vTreeFileName)))
+    vTreeFile.writeObject(tree)
+    vTreeFile.close()
+  }
+
   def calcVoronoi(ps: List[NeighboredSiteMemory], width: Int = 300, height: Int = 300) = {
     val result = voronoi(ps, width, height)
 
     (1 to ps.size + 8).map(p =>
       result(1).asInstanceOf[MWArray].get(Array(p, 1)).asInstanceOf[Array[Array[Double]]](0)
         .map(d => (result(0).asInstanceOf[MWNumericArray].getDouble(Array(d.toInt, 1)),
-        result(0).asInstanceOf[MWNumericArray].getDouble(Array(d.toInt, 2))
-        ))
+          result(0).asInstanceOf[MWNumericArray].getDouble(Array(d.toInt, 2))
+          ))
     ).toList
   }
 
@@ -167,8 +205,8 @@ object DemoData extends Publisher {
     val result = voronoi(ps)
     result(1).asInstanceOf[MWArray].get(Array(9, 1)).asInstanceOf[Array[Array[Double]]](0)
       .map(d => (result(0).asInstanceOf[MWNumericArray].getDouble(Array(d.toInt, 1)),
-      result(0).asInstanceOf[MWNumericArray].getDouble(Array(d.toInt, 2))
-      ))
+        result(0).asInstanceOf[MWNumericArray].getDouble(Array(d.toInt, 2))
+        ))
   }
 
   def voronoi(ps: List[NeighboredSiteMemory], width: Int = 300, height: Int = 300): Array[Object] = {

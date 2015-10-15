@@ -1,7 +1,9 @@
 package cn.edu.neu.chiewen.cknn.demo
 
-import java.awt.{Color, Polygon, geom}
-import javax.swing.BorderFactory
+import java.awt.{BasicStroke, Color, Polygon, geom}
+import javax.swing.{ImageIcon, BorderFactory}
+
+import cn.edu.neu.chiewen.roadDemo.moving.{ObjectMovesEvent, MovingController}
 
 //import javax.swing.border._
 
@@ -21,22 +23,29 @@ class VoronoiPanel extends Panel {
 
   preferredSize = (VoronoiPanel.WIDTH, VoronoiPanel.HEIGHT)
 
+  val backImage = new ImageIcon( """CkNN/src/main/resources/shenyang.png""").getImage
   var pVor = new geom.GeneralPath
   var pCompare = new geom.GeneralPath
   var auto = false
 
   focusable = true
-  listenTo(mouse.clicks, mouse.moves, keys, DemoData)
+  listenTo(mouse.clicks, mouse.moves, keys, DemoData, MovingController)
 
   reactions += {
     case e: MousePressed =>
       DemoData.query = e.point
-      DemoData.validate
+      DemoData.validate()
+      requestFocusInWindow()
+      repaint()
+    case ObjectMovesEvent =>
+      val pos = MovingController.obj.currentPosition
+      DemoData.query = new Point(pos.x.toInt, pos.y.toInt)
+      DemoData.validate()
       requestFocusInWindow()
       repaint()
     case e: MouseDragged =>
       DemoData.query = e.point
-      DemoData.validate
+      DemoData.validate()
       repaint()
     case KeyTyped(_, 'r', _, _) =>
       DemoData.refresh()
@@ -58,6 +67,9 @@ class VoronoiPanel extends Panel {
 
   override def paintComponent(g: Graphics2D) = {
     super.paintComponent(g)
+
+    g.drawImage(backImage, 0, 0, this.size.width, this.size.height, null)
+
     pCompare.reset()
     val all = new Rectangle(0, 0, VoronoiPanel.WIDTH * 2, VoronoiPanel.HEIGHT * 2)
 
@@ -67,8 +79,14 @@ class VoronoiPanel extends Panel {
         VoronoiPanel.POINT_WIDTH + 2 * e, VoronoiPanel.POINT_WIDTH + 2 * e)
     }
 
+    def drawCircle(i: NeighboredSiteMemory, e: Int = 0) {
+      g.drawOval(i.position._1.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
+        i.position._2.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
+        VoronoiPanel.POINT_WIDTH + 2 * e, VoronoiPanel.POINT_WIDTH + 2 * e)
+    }
+
     // order-k Voronoi cells
-    if (!DemoData.auto && !DemoData.clip.isEmpty) {
+    if (!DemoData.auto && DemoData.clip.nonEmpty) {
       if (DemoData.needRefresh)
         g.setColor(new Color(255, 0, 0, 155))
       else
@@ -87,12 +105,16 @@ class VoronoiPanel extends Panel {
     }
 
     //the objects
-    g.setColor(Color.blue)
-    for (i <- DemoData.points) fillCircle(i)
+    g.setColor(Color.orange)
+    for (i <- DemoData.points) fillCircle(i, 1)
+
+    g.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND))
 
     //Voronoi cells
-    g.setColor(Color.lightGray)
-    g.draw(pVor)
+    if (DemoData.showVoronoi) {
+      g.setColor(Color.orange)
+      g.draw(pVor)
+    }
 
     if (DemoData.rnn != null) {
       //the compared pair
@@ -110,30 +132,46 @@ class VoronoiPanel extends Panel {
       pCompare.moveTo(p1._1, p1._2)
       pCompare.lineTo(p2._1, p2._2)
 
+      g.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND))
+
       g.setColor(Color.red)
       val disR = Util.pointsDistance((DemoData.query.x, DemoData.query.y),
         DemoData.min(DemoData.ins).position)
       g.drawOval((DemoData.query.x - disR).toInt, (DemoData.query.y - disR).toInt, 2 * disR.toInt, 2 * disR.toInt)
 
       //ins
-      for (i <- DemoData.ins) fillCircle(i)
+      g.setColor(Color.cyan)
+      for (i <- DemoData.ins) {
+        fillCircle(i, 2)
+        val c = g.getColor
+        g.setColor(Color.black)
+        drawCircle(i, 3)
+        g.setColor(c)
+      }
 
       //knn
       g.setColor(Color.green)
-      for (i <- DemoData.knn) fillCircle(i)
+      for (i <- DemoData.knn) {
+        fillCircle(i, 2)
+        val c = g.getColor
+        g.setColor(Color.black)
+        drawCircle(i, 3)
+        g.setColor(c)
+      }
       val disK = Util.pointsDistance((DemoData.query.x, DemoData.query.y), DemoData.max(DemoData.knn).position)
       g.drawOval((DemoData.query.x - disK).toInt, (DemoData.query.y - disK).toInt, 2 * disK.toInt, 2 * disK.toInt)
 
       //query object
-      g.setColor(Color.black)
-      g.fillRect(DemoData.query.x - VoronoiPanel.POINT_WIDTH / 2,
-        DemoData.query.y - VoronoiPanel.POINT_WIDTH / 2,
-        VoronoiPanel.POINT_WIDTH, VoronoiPanel.POINT_WIDTH)
+      g.setColor(Color.red)
+      g.fillOval(DemoData.query.x - VoronoiPanel.POINT_WIDTH / 2 - 2,
+        DemoData.query.y - VoronoiPanel.POINT_WIDTH / 2 - 2,
+        VoronoiPanel.POINT_WIDTH + 4, VoronoiPanel.POINT_WIDTH + 4)
 
       //enlarged rnn set
       g.setColor(Color.green.darker())
-      val e = 1
+      val e = 5
       for (i <- DemoData.rnn)
+        //drawCircle(i, 3)
         g.drawRect(i.position._1.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
           i.position._2.toInt - VoronoiPanel.POINT_WIDTH / 2 - e,
           VoronoiPanel.POINT_WIDTH + 2 * e, VoronoiPanel.POINT_WIDTH + 2 * e)
@@ -155,7 +193,7 @@ class VoronoiPanel extends Panel {
 }
 
 object VoronoiPanel {
-  val HEIGHT: Int = 200
-  val WIDTH: Int = 200
+  val HEIGHT: Int = 900
+  val WIDTH: Int = 1500
   val POINT_WIDTH: Int = 6
 }

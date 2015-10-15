@@ -9,9 +9,9 @@ import scala.collection.mutable.ListBuffer
  * During the winter vacation of 2012 in Yantai
  */
 class RsTree extends Serializable {
-  val m = (M * .4).ceil.toInt
-  val pr = (M * .3).ceil.toInt
-  var M = 4
+  var M = 8
+  val m = (M.toDouble * .4).ceil.toInt
+  val pr = (M.toDouble * .3).ceil.toInt
   private var root: TreeNode = TreeNode(null, ListBuffer[Node](), true)
 
   def getRoot = root

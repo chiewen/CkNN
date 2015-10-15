@@ -9,7 +9,7 @@
       </compiler-classpath>
     </properties>
     <CLASSES>
-      <root url="jar://E:/.sbt/boot/scala-2.10.4/lib/scala-library.jar!/" />
+      <root url="jar://$USER_HOME$/.sbt/boot/scala-2.10.4/lib/scala-library.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
