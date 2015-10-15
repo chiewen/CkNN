@@ -7,16 +7,16 @@ class ClientTracer(val client: Client)(implicit server: Server, trajectory: Traj
   private var _trajectory: Trajectory = null
 
   def traceTrajectory() {
-    preTrace
+    preTrace()
     this._trajectory = trajectory
     while (!_trajectory.isEnd) {
       client.check(_trajectory.nowAt)
       _trajectory = _trajectory.nextPosition
     }
-    postTrace
+    postTrace()
   }
 
-  def preTrace {}
+  def preTrace() {}
 
-  def postTrace {}
+  def postTrace() {}
 }
