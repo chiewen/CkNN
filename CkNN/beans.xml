@@ -10,7 +10,7 @@
     <bean
             class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="location">
-            <value>D:\_T\CkNN\CkNN\\experiments.properties</value>
+            <value>CkNN\experiments.properties</value>
         </property>
     </bean>
 

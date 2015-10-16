@@ -1,8 +1,7 @@
 package cn.edu.neu.chiewen.roadDemo
 
-import java.awt.Font
+import javax.swing.BorderFactory
 import javax.swing.table.DefaultTableModel
-import javax.swing.{BorderFactory, UIManager}
 
 import cn.edu.neu.chiewen.cknn.demo.{DemoData, VoronoiPanel}
 import cn.edu.neu.chiewen.roadDemo.moving.{KnnRefreshEvent, MovingController}
@@ -18,13 +17,6 @@ import scala.swing.event.{ButtonClicked, ValueChanged}
  * Created by Chiewen on 2015/9/15.
  */
 object RoadDemo extends SimpleSwingApplication {
-  val Is_Real_Retina = true
-
-  def retinaOrNot(fun: => Unit)(fun1: => Unit): Unit = {
-    if (Is_Real_Retina) fun
-    else fun1
-  }
-
   lazy val ui = new GridBagPanel {
     val cons = new Constraints
 
@@ -128,7 +120,9 @@ object RoadDemo extends SimpleSwingApplication {
 
     val panel_road = new RoadVoronoiPanel
     val panel_plane = new VoronoiPanel
-    val centerPanel = new BoxPanel(Orientation.Vertical) {contents += panel_plane }
+    val centerPanel = new BoxPanel(Orientation.Vertical) {
+      contents += panel_plane
+    }
 
 
     def refreshKnnTable(): Unit = {
@@ -168,16 +162,12 @@ object RoadDemo extends SimpleSwingApplication {
         }
       }) = resetConstraint(cons, 0, 0, 1)
 
-
       layout(new BoxPanel(Orientation.Vertical) {
         border = BorderFactory.createTitledBorder("Road Network")
-        contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Operation:"), rbAdd, new Label("       "),
-          rbSite)
-        contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("                "), rbTrajectory, new Label(""), rbDemo
-        )
+        contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Operation:"), rbAdd, new Label("         "), rbSite)
+        contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("                   "), rbTrajectory, new Label(""), rbDemo)
         contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Show:      "), chkNode, new Label(""),
-          chkRoad, new Label(""), chkKnn, new Label(""), chkNeighbors
-        )
+          chkRoad, new Label(""), chkKnn, new Label(""), chkNeighbors)
         contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Moving Speed:"), slSpeed)
       }) = resetConstraint(cons, 0, 1, 1)
 
@@ -287,17 +277,12 @@ object RoadDemo extends SimpleSwingApplication {
     resetDemoData()
   }
 
-
   def top = new MainFrame {
-    retinaOrNot {} {
-      val font1 = new Font("Menlo", Font.PLAIN, 22)
-      List("Button.font", "TextField.font", "Label.font", "CheckBox.font", "RadioButton.font") foreach (UIManager.put(_, font1))
-    }
+    //val font1 = new Font("Menlo", Font.PLAIN, 22)
+    //List("Button.font", "TextField.font", "Label.font", "CheckBox.font", "RadioButton.font") foreach (UIManager.put(_, font1))
+
     title = "Influential Neighbor Set Demo"
     contents = ui
-
-
-
     open()
 
     override def dispose(): Unit = {
@@ -305,6 +290,4 @@ object RoadDemo extends SimpleSwingApplication {
       super.dispose()
     }
   }
-
-
 }
