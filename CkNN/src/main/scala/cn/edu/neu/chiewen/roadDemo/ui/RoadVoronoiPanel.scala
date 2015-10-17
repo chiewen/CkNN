@@ -147,13 +147,19 @@ class RoadVoronoiPanel extends Panel with Publisher {
     }
 
     if (PanelDrawingState.showNeighbors) {
-      g.setColor(Color.cyan)
+      g.setColor(Color.yellow)
       if (MovingController.voronoiNeighbor.nonEmpty)
         for (n <- MovingController.voronoiNeighbor) drawVoronoi(n)
     }
 
     g.setColor(Color.red)
-    if (MovingController.obj != null) fillCircle(MovingController.obj.currentPosition, 3)
+    if (MovingController.obj != null) {
+      fillCircle(MovingController.obj.currentPosition, 3)
+      val c = g.getColor
+      g.setColor(Color.black)
+      drawCircle(MovingController.obj.currentPosition, 4)
+      g.setColor(c)
+    }
     if (MovingController.trajectoryNodes.size > 1) MovingController.trajectoryNodes.sliding(2).foreach { s =>
       s.head.roads.find(_.terminals.contains(s(1))) match {
         case Some(r) => drawRoad(r)

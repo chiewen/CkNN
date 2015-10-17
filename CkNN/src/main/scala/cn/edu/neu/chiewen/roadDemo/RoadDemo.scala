@@ -156,7 +156,7 @@ object RoadDemo extends SimpleSwingApplication {
         border = BorderFactory.createTitledBorder("Global Setting")
         contents += new BoxPanel(Orientation.Vertical) {
           contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Map type:    "), rbSatellite, new Label("           "), rbOrdinary)
-          contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Demo type: "), rbRoad, new Label("  "), rbPlane)
+          contents += new FlowPanel(FlowPanel.Alignment.Left)(new Label("Demo mode: "), rbRoad, new Label("  "), rbPlane)
           contents += new FlowPanel(FlowPanel.Alignment.Left)(lblK, txtK, new Label("      "), btnSave, new Label("  "),
             btnRead)
         }

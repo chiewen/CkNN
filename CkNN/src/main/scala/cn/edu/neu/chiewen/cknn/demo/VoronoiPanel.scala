@@ -108,7 +108,7 @@ class VoronoiPanel extends Panel {
     g.setColor(Color.orange)
     for (i <- DemoData.points) fillCircle(i, 1)
 
-    g.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND))
+    g.setStroke(new BasicStroke(1, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND))
 
     //Voronoi cells
     if (DemoData.showVoronoi) {
@@ -140,11 +140,11 @@ class VoronoiPanel extends Panel {
       g.drawOval((DemoData.query.x - disR).toInt, (DemoData.query.y - disR).toInt, 2 * disR.toInt, 2 * disR.toInt)
 
       //ins
-      g.setColor(Color.cyan)
+      g.setColor(Color.yellow.brighter())
       for (i <- DemoData.ins) {
         fillCircle(i, 2)
         val c = g.getColor
-        g.setColor(Color.black)
+        g.setColor(Color.gray)
         drawCircle(i, 3)
         g.setColor(c)
       }
@@ -163,12 +163,18 @@ class VoronoiPanel extends Panel {
 
       //query object
       g.setColor(Color.red)
-      g.fillOval(DemoData.query.x - VoronoiPanel.POINT_WIDTH / 2 - 2,
-        DemoData.query.y - VoronoiPanel.POINT_WIDTH / 2 - 2,
-        VoronoiPanel.POINT_WIDTH + 4, VoronoiPanel.POINT_WIDTH + 4)
+      g.fillOval(DemoData.query.x - VoronoiPanel.POINT_WIDTH / 2 - 3,
+        DemoData.query.y - VoronoiPanel.POINT_WIDTH / 2 - 3,
+        VoronoiPanel.POINT_WIDTH + 6, VoronoiPanel.POINT_WIDTH + 6)
+      val c = g.getColor
+      g.setColor(Color.black)
+      g.drawOval(DemoData.query.x - VoronoiPanel.POINT_WIDTH / 2 - 4,
+        DemoData.query.y - VoronoiPanel.POINT_WIDTH / 2 - 4,
+        VoronoiPanel.POINT_WIDTH + 8, VoronoiPanel.POINT_WIDTH + 8)
+      g.setColor(c)
 
       //enlarged rnn set
-      g.setColor(Color.green.darker())
+      g.setColor(Color.green.darker().darker())
       val e = 5
       for (i <- DemoData.rnn)
         //drawCircle(i, 3)
@@ -184,9 +190,9 @@ class VoronoiPanel extends Panel {
     if (!DemoData._auto) {
       g.setColor(Color.black)
       if (DemoData.needRefresh)
-        g.drawString("The kNN set is invalid. Press 'r' to refresh.", 10, size.height - 10)
+        g.drawString("The kNN set is invalid. Press 'r' to refresh.", 20, size.height - 20)
       else if (DemoData.isCalculating)
-        g.drawString("Calculating Order-" + DemoData.k + " Voronoi cell...", 10, size.height - 10)
+        g.drawString("Calculating Order-" + DemoData.k + " Voronoi cell...", 20, size.height - 20)
     }
   }
 
