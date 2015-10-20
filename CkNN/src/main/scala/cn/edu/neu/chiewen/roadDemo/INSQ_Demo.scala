@@ -16,7 +16,7 @@ import scala.swing.event.{ButtonClicked, ValueChanged}
 /**
  * Created by Chiewen on 2015/9/15.
  */
-object RoadDemo extends SimpleSwingApplication {
+object INSQ_Demo extends SimpleSwingApplication {
   lazy val ui = new GridBagPanel {
     val cons = new Constraints
 
